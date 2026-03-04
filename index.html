@@ -32,7 +32,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useMemo } = React;
+        const { useState, useMemo, useEffect } = React;
 
         // --- CONFIGURAZIONI INIZIALI ---
         const RUOLI = ['PT', 'DC', 'TS', 'TD', 'MED', 'CC', 'CLD', 'CLS', 'TRQ', 'SP', 'ESA', 'EDA', 'P'];
@@ -44,15 +44,40 @@
           const [editingPlayer, setEditingPlayer] = useState(null);
           const [playerToDelete, setPlayerToDelete] = useState(null);
 
-          // --- STATO SQUADRA ---
-          const [teamConfig, setTeamConfig] = useState({
-            name: 'FC eFootball',
-            capital: 5000000,
-            stadiumCost: 200000,
-            youthCost: 100000,
-            maxOverall: 1735,
-            includeFixedExpenses: true
+          // --- STATO SQUADRA (con salvataggio in Local Storage) ---
+          const [teamConfig, setTeamConfig] = useState(() => {
+            const savedConfig = localStorage.getItem('efootball_teamConfig');
+            return savedConfig ? JSON.parse(savedConfig) : {
+              name: 'FC eFootball',
+              capital: 5000000,
+              stadiumCost: 200000,
+              youthCost: 100000,
+              maxOverall: 1735,
+              includeFixedExpenses: true
+            };
           });
+
+          // --- STATO GIOCATORI (con salvataggio in Local Storage) ---
+          const [players, setPlayers] = useState(() => {
+            const savedPlayers = localStorage.getItem('efootball_players');
+            return savedPlayers ? JSON.parse(savedPlayers) : [
+              { id: 1, name: 'M. Maignan', role: 'PT', age: 28, overall: 87, foot: 'Dx', style: 'Portiere offensivo', salary: 150000, releaseCost: 0, status: 'OK' },
+              { id: 2, name: 'T. Hernández', role: 'TS', age: 26, overall: 85, foot: 'Sx', style: 'Terzino offensivo', salary: 120000, releaseCost: 0, status: 'OK' },
+              { id: 3, name: 'R. Leão', role: 'ESA', age: 24, overall: 86, foot: 'Dx', style: 'Ala prolifica', salary: 180000, releaseCost: 0, status: 'IN VENDITA' },
+              { id: 4, name: 'Nuovo Talento', role: 'TRQ', age: 20, overall: 79, foot: 'Dx', style: 'Regista creativo', salary: 60000, releaseCost: 0, status: 'NUOVO ACQUISTO' },
+            ];
+          });
+
+          // --- EFFETTI PER SALVATAGGIO AUTOMATICO ---
+          // Salva le impostazioni ogni volta che cambiano
+          useEffect(() => {
+            localStorage.setItem('efootball_teamConfig', JSON.stringify(teamConfig));
+          }, [teamConfig]);
+
+          // Salva la rosa ogni volta che un giocatore viene aggiunto/modificato/rimosso
+          useEffect(() => {
+            localStorage.setItem('efootball_players', JSON.stringify(players));
+          }, [players]);
 
           // --- FUNZIONI DI FORMATTAZIONE FORM ---
           const formatNumber = (value) => {
@@ -73,14 +98,6 @@
             }
             e.target.value = formatNumber(rawValue);
           };
-
-          // --- STATO GIOCATORI ---
-          const [players, setPlayers] = useState([
-            { id: 1, name: 'M. Maignan', role: 'PT', age: 28, overall: 87, foot: 'Dx', style: 'Portiere offensivo', salary: 150000, releaseCost: 0, status: 'OK' },
-            { id: 2, name: 'T. Hernández', role: 'TS', age: 26, overall: 85, foot: 'Sx', style: 'Terzino offensivo', salary: 120000, releaseCost: 0, status: 'OK' },
-            { id: 3, name: 'R. Leão', role: 'ESA', age: 24, overall: 86, foot: 'Dx', style: 'Ala prolifica', salary: 180000, releaseCost: 0, status: 'IN VENDITA' },
-            { id: 4, name: 'Nuovo Talento', role: 'TRQ', age: 20, overall: 79, foot: 'Dx', style: 'Regista creativo', salary: 60000, releaseCost: 0, status: 'NUOVO ACQUISTO' },
-          ]);
 
           // --- LOGICA DI CALCOLO ---
           const calculations = useMemo(() => {
@@ -504,4 +521,6 @@
     </script>
 </body>
 </html>
+
+
 
