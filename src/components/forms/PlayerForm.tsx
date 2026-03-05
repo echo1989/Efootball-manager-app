@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { RUOLI, STILI_GIOCO, STATI } from '../../constants/football'
 import { formatNumber, parseCurrency } from '../../utils/format'
 import type { Player } from '../../types'
@@ -11,9 +11,53 @@ interface Props {
   onCancel: () => void
 }
 
+const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-emerald-500/50 focus:bg-white/[0.07] transition'
+const labelCls = 'block text-[11px] font-semibold uppercase tracking-wider text-white/30 mb-1.5'
+
+type CostoMeta = {
+  label: string
+  hint: string
+  hintColor: string
+  inputBorder: string
+}
+
+function getCostoMeta(stato: Player['stato']): CostoMeta {
+  switch (stato) {
+    case 'VENDUTO':
+      return {
+        label: 'Prezzo di Vendita (€)',
+        hint: 'Entrata nel bilancio Post-Mercato',
+        hintColor: 'text-emerald-400',
+        inputBorder: 'focus:border-emerald-500/50',
+      }
+    case 'SVINCOLATO':
+      return {
+        label: 'Penale Svincolo (€)',
+        hint: 'Uscita immediata dal bilancio',
+        hintColor: 'text-orange-400',
+        inputBorder: 'focus:border-orange-500/50',
+      }
+    case 'NUOVO ACQUISTO':
+      return {
+        label: 'Costo Acquisto (€)',
+        hint: 'Uscita nel bilancio Post-Mercato',
+        hintColor: 'text-red-400',
+        inputBorder: 'focus:border-red-500/50',
+      }
+    default:
+      return {
+        label: 'Clausola (€)',
+        hint: '',
+        hintColor: '',
+        inputBorder: 'focus:border-emerald-500/50',
+      }
+  }
+}
+
 export default function PlayerForm({ player, onSave, onCancel }: Props) {
   const ingaggioRef = useRef<HTMLInputElement>(null)
   const costoRef = useRef<HTMLInputElement>(null)
+  const [stato, setStato] = useState<Player['stato']>(player?.stato ?? 'OK')
 
   const handleCurrencyInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '')
@@ -22,9 +66,7 @@ export default function PlayerForm({ player, onSave, onCancel }: Props) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = e.currentTarget
-    const fd = new FormData(form)
-
+    const fd = new FormData(e.currentTarget)
     onSave({
       nome: fd.get('nome') as string,
       ruolo: fd.get('ruolo') as string,
@@ -34,145 +76,131 @@ export default function PlayerForm({ player, onSave, onCancel }: Props) {
       stile: fd.get('stile') as string,
       ingaggio: parseCurrency(ingaggioRef.current?.value ?? '0'),
       costo_svincolo: parseCurrency(costoRef.current?.value ?? '0'),
-      stato: fd.get('stato') as Player['stato'],
+      stato,
     })
   }
 
+  const costoMeta = getCostoMeta(stato)
+
   return (
-    <div className="max-w-3xl mx-auto bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
-      <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
-        <i className="fas fa-users text-emerald-400 text-2xl"></i>
-        <h2 className="text-2xl font-bold">
+    <div className="max-w-2xl mx-auto">
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={onCancel} className="text-white/30 hover:text-white/60 transition">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+        <h1 className="text-lg font-bold text-white">
           {player ? 'Modifica Giocatore' : 'Nuovo Giocatore'}
-        </h2>
+        </h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-slate-400 mb-1">Nome</label>
-            <input
-              type="text"
-              name="nome"
-              defaultValue={player?.nome}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Identità */}
+        <section className="rounded-2xl bg-[#0f0f1a] border border-white/[0.07] p-5 space-y-4">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/20">Identità</p>
 
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Ruolo</label>
-            <select
-              name="ruolo"
-              defaultValue={player?.ruolo ?? 'DC'}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              {RUOLI.map(r => <option key={r} value={r}>{r}</option>)}
-            </select>
+            <label className={labelCls}>Nome</label>
+            <input type="text" name="nome" defaultValue={player?.nome} required placeholder="Es. L. Modrić" className={inputCls} />
           </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={labelCls}>Ruolo</label>
+              <select name="ruolo" defaultValue={player?.ruolo ?? 'DC'} className={inputCls}>
+                {RUOLI.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Overall</label>
+              <input type="number" name="overall" defaultValue={player?.overall ?? 75} min={1} max={99} required className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Età</label>
+              <input type="number" name="eta" defaultValue={player?.eta ?? 22} min={15} max={45} required className={inputCls} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Piede</label>
+              <select name="piede" defaultValue={player?.piede ?? 'Dx'} className={inputCls}>
+                <option value="Dx">Destro</option>
+                <option value="Sx">Sinistro</option>
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Stile</label>
+              <select name="stile" defaultValue={player?.stile ?? 'Nessuno'} className={inputCls}>
+                {STILI_GIOCO.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+        </section>
+
+        {/* Contratto */}
+        <section className="rounded-2xl bg-[#0f0f1a] border border-white/[0.07] p-5 space-y-4">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/20">Contratto</p>
 
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Overall (VG)</label>
-            <input
-              type="number"
-              name="overall"
-              defaultValue={player?.overall ?? 70}
-              min={1}
-              max={99}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Età</label>
-            <input
-              type="number"
-              name="eta"
-              defaultValue={player?.eta ?? 20}
-              min={15}
-              max={45}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Piede Preferito</label>
-            <select
-              name="piede"
-              defaultValue={player?.piede ?? 'Dx'}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="Dx">Destro (Dx)</option>
-              <option value="Sx">Sinistro (Sx)</option>
-            </select>
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-400 mb-1">Stile Giocatore</label>
-            <select
-              name="stile"
-              defaultValue={player?.stile ?? 'Nessuno'}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              {STILI_GIOCO.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Ingaggio (€)</label>
-            <input
-              ref={ingaggioRef}
-              type="text"
-              inputMode="numeric"
-              name="ingaggio_display"
-              defaultValue={formatNumber(player?.ingaggio ?? 0)}
-              onChange={handleCurrencyInput}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">
-              {player?.stato === 'SVINCOLATO' ? 'Penale Svincolo (€)' : 'Clausola Rescissoria (€)'}
-            </label>
-            <input
-              ref={costoRef}
-              type="text"
-              inputMode="numeric"
-              name="costo_svincolo_display"
-              defaultValue={formatNumber(player?.costo_svincolo ?? 0)}
-              onChange={handleCurrencyInput}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Stato Mercato</label>
+            <label className={labelCls}>Stato Mercato</label>
             <select
               name="stato"
-              defaultValue={player?.stato ?? 'OK'}
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white font-bold text-amber-400 outline-none focus:ring-2 focus:ring-emerald-500"
+              value={stato}
+              onChange={e => setStato(e.target.value as Player['stato'])}
+              className={inputCls}
             >
               {STATI.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-        </div>
 
-        <div className="pt-4 flex gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Ingaggio (€)</label>
+              <input
+                ref={ingaggioRef}
+                type="text"
+                inputMode="numeric"
+                defaultValue={formatNumber(player?.ingaggio ?? 0)}
+                onChange={handleCurrencyInput}
+                required
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>{costoMeta.label}</label>
+              <input
+                ref={costoRef}
+                type="text"
+                inputMode="numeric"
+                defaultValue={formatNumber(player?.costo_svincolo ?? 0)}
+                onChange={handleCurrencyInput}
+                required
+                className={`${inputCls} ${costoMeta.inputBorder}`}
+              />
+              {costoMeta.hint && (
+                <p className={`mt-1.5 text-[11px] font-medium flex items-center gap-1 ${costoMeta.hintColor}`}>
+                  {stato === 'VENDUTO' && <i className="fas fa-arrow-trend-up text-[10px]"></i>}
+                  {stato === 'SVINCOLATO' && <i className="fas fa-triangle-exclamation text-[10px]"></i>}
+                  {stato === 'NUOVO ACQUISTO' && <i className="fas fa-arrow-trend-down text-[10px]"></i>}
+                  {costoMeta.hint}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        {/* Actions */}
+        <div className="flex gap-3 pb-24 md:pb-0">
           <button
             type="submit"
-            className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white p-3 rounded-lg font-bold transition flex justify-center items-center gap-2"
+            className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold py-3 rounded-xl transition text-sm"
           >
-            <i className="fas fa-check"></i> {player ? 'Salva Modifiche' : 'Aggiungi in Rosa'}
+            {player ? 'Salva modifiche' : 'Aggiungi alla rosa'}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 bg-slate-700 hover:bg-slate-600 text-white p-3 rounded-lg font-bold transition"
+            className="px-5 bg-white/5 hover:bg-white/10 text-white/60 font-semibold py-3 rounded-xl transition text-sm"
           >
             Annulla
           </button>

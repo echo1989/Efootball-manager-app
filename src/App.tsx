@@ -83,7 +83,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-200 font-sans pb-10">
+    <div className="min-h-screen bg-[#08080f] text-white font-sans">
       <Navbar
         teamName={config.name}
         view={view}
@@ -91,14 +91,15 @@ export default function App() {
           setView(v)
           if (v !== 'playerForm') setEditingPlayer(null)
         }}
+        onAddPlayer={handleAddPlayer}
       />
 
-      <main className="max-w-6xl mx-auto px-4 mt-6">
+      <main className="max-w-5xl mx-auto px-4 pt-5 pb-28 md:pb-10">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="text-slate-400 flex items-center gap-3">
-              <i className="fas fa-spinner fa-spin text-2xl"></i>
-              <span>Caricamento dati...</span>
+            <div className="text-white/30 flex items-center gap-3">
+              <i className="fas fa-spinner fa-spin text-xl"></i>
+              <span className="text-sm">Caricamento...</span>
             </div>
           </div>
         ) : (
@@ -107,7 +108,6 @@ export default function App() {
               <Dashboard
                 players={players}
                 config={config}
-                onAddPlayer={handleAddPlayer}
                 onEditPlayer={handleEditPlayer}
                 onDeletePlayer={setDeletingId}
                 onStatusChange={handleStatusChange}

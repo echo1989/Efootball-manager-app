@@ -27,10 +27,16 @@ export interface Calculations {
   salariNormali: number
   salariTemporanei: number
   costiSvincolo: number
+  ricaviVendite: number
+  costiAcquisti: number
   capitaleNormale: number
   capitaleTemporaneo: number
   vgNormali: number
   vgTemporanei: number
   isOverVGNormali: boolean
   isOverVGTemporanei: boolean
+  countNormali: number
+  countPTNormali: number
+  countTemporanei: number
+  countPTTemporanei: number
 }

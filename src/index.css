@@ -2,8 +2,13 @@
 
 body {
   overscroll-behavior-y: contain;
-  background-color: #0f172a;
+  background-color: #08080f;
   margin: 0;
+}
+
+/* Safe area padding for bottom nav on iPhone */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Hide number input spinners */
@@ -14,4 +19,10 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] {
   -moz-appearance: textfield;
+}
+
+/* Style select options (dark bg) */
+select option {
+  background-color: #1a1a28;
+  color: #f1f5f9;
 }

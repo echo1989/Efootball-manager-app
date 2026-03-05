@@ -8,6 +8,9 @@ interface Props {
   onCancel: () => void
 }
 
+const inputCls = 'w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-sky-500/50 focus:bg-white/[0.07] transition'
+const labelCls = 'block text-[11px] font-semibold uppercase tracking-wider text-white/30 mb-1.5'
+
 export default function TeamSettingsForm({ config, onSave, onCancel }: Props) {
   const capitalRef = useRef<HTMLInputElement>(null)
   const stadiumRef = useRef<HTMLInputElement>(null)
@@ -31,29 +34,33 @@ export default function TeamSettingsForm({ config, onSave, onCancel }: Props) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
-      <div className="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
-        <i className="fas fa-cog text-blue-400 text-2xl"></i>
-        <h2 className="text-2xl font-bold">Impostazioni Squadra</h2>
+    <div className="max-w-xl mx-auto">
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={onCancel} className="text-white/30 hover:text-white/60 transition">
+          <i className="fas fa-arrow-left"></i>
+        </button>
+        <h1 className="text-lg font-bold text-white">Configurazione Squadra</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-slate-400 mb-1">Nome Squadra</label>
-          <input
-            type="text"
-            name="name"
-            defaultValue={config.name}
-            required
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Squadra */}
+        <section className="rounded-2xl bg-[#0f0f1a] border border-white/[0.07] p-5 space-y-4">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/20">Squadra</p>
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">
-              Capitale Disponibile (€)
-            </label>
+            <label className={labelCls}>Nome Squadra</label>
+            <input type="text" name="name" defaultValue={config.name} required className={inputCls} />
+          </div>
+          <div>
+            <label className={labelCls}>Limite Overall (VG Max)</label>
+            <input type="number" name="max_overall" defaultValue={config.max_overall} required className={inputCls} />
+          </div>
+        </section>
+
+        {/* Budget */}
+        <section className="rounded-2xl bg-[#0f0f1a] border border-white/[0.07] p-5 space-y-4">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-white/20">Budget</p>
+          <div>
+            <label className={labelCls}>Capitale Disponibile (€)</label>
             <input
               ref={capitalRef}
               type="text"
@@ -61,65 +68,48 @@ export default function TeamSettingsForm({ config, onSave, onCancel }: Props) {
               defaultValue={formatNumber(config.capital)}
               onChange={handleCurrencyInput}
               required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500"
+              className={inputCls}
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">
-              Limite Overall Squadra
-            </label>
-            <input
-              type="number"
-              name="max_overall"
-              defaultValue={config.max_overall}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Costo Stadio (€)</label>
+              <input
+                ref={stadiumRef}
+                type="text"
+                inputMode="numeric"
+                defaultValue={formatNumber(config.stadium_cost)}
+                onChange={handleCurrencyInput}
+                required
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Costo Cantera (€)</label>
+              <input
+                ref={canteraRef}
+                type="text"
+                inputMode="numeric"
+                defaultValue={formatNumber(config.cantera_cost)}
+                onChange={handleCurrencyInput}
+                required
+                className={inputCls}
+              />
+            </div>
           </div>
+        </section>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">
-              Costo Gestione Stadio (€)
-            </label>
-            <input
-              ref={stadiumRef}
-              type="text"
-              inputMode="numeric"
-              defaultValue={formatNumber(config.stadium_cost)}
-              onChange={handleCurrencyInput}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">
-              Costo Cantera (€)
-            </label>
-            <input
-              ref={canteraRef}
-              type="text"
-              inputMode="numeric"
-              defaultValue={formatNumber(config.cantera_cost)}
-              onChange={handleCurrencyInput}
-              required
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div className="pt-4 flex gap-3">
+        <div className="flex gap-3 pb-24 md:pb-0">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-lg font-bold transition flex justify-center items-center gap-2"
+            className="flex-1 bg-sky-500 hover:bg-sky-400 text-white font-semibold py-3 rounded-xl transition text-sm"
           >
-            <i className="fas fa-check"></i> Salva Impostazioni
+            Salva impostazioni
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 bg-slate-700 hover:bg-slate-600 text-white p-3 rounded-lg font-bold transition"
+            className="px-5 bg-white/5 hover:bg-white/10 text-white/60 font-semibold py-3 rounded-xl transition text-sm"
           >
             Annulla
           </button>
